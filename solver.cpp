@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <conio.h>
 #include <windows.h>
+#include <fstream>
 
 using namespace std;
 
@@ -18,6 +19,7 @@ struct game
     int solve2();/** IF ONLY ONE NUMBER IS POSSIBLE IN AN ELEMENT, ADD IT TO THE SOLUTION **/
     int checkns(int a, int b);/**NAKED SINGLE TEST**/
     int clearsq(int a, int b, int c);
+    int readfile();
 };
 
 game obj;
@@ -32,17 +34,67 @@ int game::menu()
 {
     system("cls");
     system("title -SUDOKU SOLVER-");
-    printf("      -SUDOKU SOLVER-\n\n\n 1. Input Sudoku and solve\n 2. Exit\n\n");
+    printf("      -SUDOKU SOLVER-\n\n\n 1. Input Sudoku and solve\n 2. Read Sudoku text file and solve\n 3. Exit\n\n");
     switch(getch())
     {
     case 49:
         obj.inputsudo();
         break;
     case 50:
+        obj.readfile();
+        break;
+    case 51:
         break;
     default:
         obj.menu();
         break;
+    }
+}
+
+int game::readfile()
+{
+    for(int i=0;i<9;i++)
+    {
+        for(int j=0;j<9;j++)
+        {
+            sudo[i][j] = 0;
+            for(int k=0;k<9;k++)
+            {
+                solvegrid[i][j][k] = i+1;
+            }
+        }
+    }
+    char num;
+    fstream file;
+    file.open("sudoku.txt",ios::in);
+    for(int i=0;i<9;i++)
+    {
+        for(int j=0;j<9;j++)
+        {
+            num = file.get();
+            sudo[i][j] = num - 48;
+        }
+    }
+    file.close();
+    obj.display();
+    printf("\n\n File successfully read,\n press Y to solve sudoku,\n or, press N to go back to the main menu.");
+    switch(getch())
+    {
+        case 121: //Y
+            obj.loopsolve();
+            break;
+        case 89: //Y
+            obj.loopsolve();
+            break;
+        case 110: //N
+            obj.menu();
+            break;
+        case 78: //N
+            obj.menu();
+            break;
+        default:
+            obj.menu();
+            break;
     }
 }
 
@@ -77,7 +129,7 @@ int game::inputsudo()
             obj.display();
         }
     }
-    printf("\n\n Input successfully taken,\n press Y to solve sudoku, or, press N to go back to the main menu.");
+    printf("\n\n Input successfully taken,\n press Y to solve sudoku,\n or, press N to go back to the main menu.");
     switch(getch())
     {
         case 121: //Y
