@@ -6,20 +6,29 @@
 
 using namespace std;
 
-int solvegrid[9][9][9],sudo[9][9];
+int solvegrid[9][9][9],sudo[9][9],posibnum[9][9][2];
 int convert[2][9] = {0,1,2,3,4,5,6,7,8,0,0,0,3,3,3,6,6,6};
 
 struct game
 {
-    int display();
     int menu();
     int inputsudo();
-    int loopsolve();
-    int solve1(); /** NARROW DOWN POSSIBLE NUMBERS **/
-    int solve2();/** IF ONLY ONE NUMBER IS POSSIBLE IN AN ELEMENT, ADD IT TO THE SOLUTION **/
-    int checkns(int a, int b);/**NAKED SINGLE TEST**/
-    int clearsq(int a, int b, int c);
     int readfile();
+    int display();
+    int loopsolve();
+
+    int solve1();
+    int clearsq(int a, int b, int c);
+    int pointingpairs(int a, int b); /****/
+    int nakedpair();  /****/
+    int nakedpair_s(int a,int b); /****/
+
+    int solve2();
+    int nakedsingle(int a,int b);
+    int fillsq(int a, int b);
+
+    int checkcomp();
+    int calcposibnum();
 };
 
 game obj;
@@ -72,7 +81,8 @@ int game::readfile()
         for(int j=0;j<9;j++)
         {
             num = file.get();
-            sudo[i][j] = num - 48;
+            if(num=='.'){sudo[i][j] = 0;}
+            else{sudo[i][j] = num - 48;}
         }
     }
     file.close();
@@ -152,21 +162,14 @@ int game::inputsudo()
 
 int game::loopsolve()
 {
-    bool flag;
     obj.solve1();
     obj.solve2();
-    for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.checkns(i,j);}}
+    for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.fillsq(i,j);}}
+    for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.nakedsingle(i,j);}}
+    for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.pointingpairs(i,j);}}
+    obj.calcposibnum();
     obj.display();
-    flag = false;
-    for(int i=0;i<9;i++)
-    {
-        for(int j=0;j<9;j++)
-        {
-            if(sudo[i][j]==0){flag = true;}
-        }
-    }
-    if(flag==true){obj.loopsolve();}
-    else{printf("\n\nSolved! (press any button to return to main menu)");getch();obj.menu();}
+    obj.checkcomp();
 }
 
 int game::solve1()
@@ -192,7 +195,7 @@ int game::solve1()
     }
 }
 
-int game::checkns(int a,int b)
+int game::pointingpairs(int a,int b) /**rework**/
 {
     int occ=0,occ2=0;
     for(int k=0; k<9;k++)
@@ -205,7 +208,7 @@ int game::checkns(int a,int b)
                 if(solvegrid[k][i][j]==k+1){occ++;}
             }
         }
-        if(occ<=3&&occ!=0)
+        if(occ<=3&&occ>1)
         {
             for(int i=a;i<a+3;i++)
             {
@@ -221,6 +224,7 @@ int game::checkns(int a,int b)
                         if(l<b||l>b+2)
                         {
                             solvegrid[k][i][l] = 0;
+
                         }
                     }
                     break;
@@ -241,6 +245,7 @@ int game::checkns(int a,int b)
                         if(l<a||l>a+2)
                         {
                             solvegrid[k][l][i] = 0;
+
                         }
                     }
                     break;
@@ -281,6 +286,69 @@ int game::solve2()
                     if(solvegrid[j][k][i]==j+1){sudo[k][i] = j+1;}
                 }
             }
+            occ=0;
+            for(int k=0;k<9;k++)
+            {
+                if(solvegrid[k][i][j]!=0){occ++;}
+            }
+            if(occ==1)
+            {
+                for(int k=0;k<9;k++)
+                {
+                    if(solvegrid[k][i][j]!=0){sudo[i][j]=k+1;}
+                }
+            }
+        }
+    }
+}
+int game::fillsq(int a, int b)
+{
+    int occ;
+    for(int k=0;k<9;k++)
+    {
+        occ=0;
+        for(int i=a;i<a+3;i++)
+        {
+            for(int j=b;j<b+3;j++)
+            {
+                if(solvegrid[k][i][j]!=0){occ++;}
+            }
+        }
+        if(occ==1)
+        {
+            for(int i=a;i<a+3;i++)
+            {
+                for(int j=b;j<b+3;j++)
+                {
+                    if(solvegrid[k][i][j]!=0){sudo[i][j]=k+1;}
+                }
+            }
+        }
+    }
+}
+
+int game::nakedsingle(int a, int b)
+{
+    int occ=0;
+    occ=0;
+    for(int i=a;i<a+3;i++)
+    {
+        for(int j=b;j<b+3;j++)
+        {
+            if(posibnum[i][j][0]==1){occ++;}
+        }
+    }
+    if(occ==1)
+    {
+        for(int i=a;i<a+3;i++)
+        {
+            for(int j=b;j<b+3;j++)
+            {
+                if(posibnum[i][j][0]==1)
+                {
+                    sudo[i][j] = posibnum[i][j][1]+1;
+                }
+            }
         }
     }
 }
@@ -313,16 +381,85 @@ int game::display()
         else{printf("\n\n");}
     }
     printf(" +-----------------------------+");
-   /* printf("\n\n\n");
+    printf("\n\n\n");
+    /*printf(" +-----------------------------+\n");
     for(int i=0;i<9;i++)
     {
-        printf(" ");
+        printf(" | ");
         for(int j=0;j<9;j++)
         {
-            printf("%i  ",solvegrid[2][i][j]);
+            if(j%3==0&&j!=0){printf("| %i  ",solvegrid[4][i][j]);}
+            else{if((j+1)%3!=0){printf("%i  ",solvegrid[4][i][j]);}else{printf("%i ",solvegrid[4][i][j]);}}
         }
-        printf("\n\n");
+        printf("|");
+        if((i+1)%3==0&&i!=8){printf("\n\n |-----------------------------|\n\n");}
+        else{printf("\n\n");}
     }
-    return 0;*/
+    printf(" +-----------------------------+");
+    printf("\n\n\n");
+    printf(" +-----------------------------+\n");
+    for(int i=0;i<9;i++)
+    {
+        printf(" | ");
+        for(int j=0;j<9;j++)
+        {
+            if(j%3==0&&j!=0){printf("| %i  ",solvegrid[2][i][j]);}
+            else{if((j+1)%3!=0){printf("%i  ",solvegrid[2][i][j]);}else{printf("%i ",solvegrid[2][i][j]);}}
+        }
+        printf("|");
+        if((i+1)%3==0&&i!=8){printf("\n\n |-----------------------------|\n\n");}
+        else{printf("\n\n");}
+    }
+    printf(" +-----------------------------+");*/
+    return 0;
+}
+
+int game::nakedpair_s(int a,int b)
+{
+
+}
+
+int game::nakedpair()
+{
+
+}
+
+int game::checkcomp()
+{
+    bool flag;
+    flag = false;
+    for(int i=0;i<9;i++)
+    {
+        for(int j=0;j<9;j++)
+        {
+            if(sudo[i][j]==0){flag = true;}
+        }
+    }
+    if(flag==true){obj.loopsolve();}
+    else{printf("\n\nSolved! (press any button to return to main menu)");getch();obj.menu();}
+}
+
+int game::calcposibnum()
+{
+    int occ;
+    for(int i=0;i<9;i++)
+    {
+        for(int j=0;j<9;j++)
+        {
+            occ=0;
+            for(int k=0;k<9;k++)
+            {
+                if(solvegrid[k][i][j]!=0){occ++;}
+            }
+            posibnum[i][j][0] = occ;
+            if(occ==1)
+            {
+                for(int k=0;k<9;k++)
+                {
+                    if(solvegrid[k][i][j]!=0){posibnum[i][j][1]=k;}
+                }
+            }
+        }
+    }
 }
 
