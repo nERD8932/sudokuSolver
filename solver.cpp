@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int solvegrid[9][9][9],sudo[9][9],posibnum[9][9][2];
+int solvegrid[9][9][9],sudo[9][9],possibnum[9][9][2];
 int convert[2][9] = {0,1,2,3,4,5,6,7,8,0,0,0,3,3,3,6,6,6};
 
 struct game
@@ -22,13 +22,14 @@ struct game
     int pointingpairs(int a, int b); /****/
     int nakedpair();  /****/
     int nakedpair_s(int a,int b); /****/
+    int lockedcandidates(int a, int b);
 
     int solve2();
     int nakedsingle(int a,int b);
     int fillsq(int a, int b);
 
     int checkcomp();
-    int calcposibnum();
+    int calcpossibnum();
 };
 
 game obj;
@@ -164,11 +165,13 @@ int game::loopsolve()
 {
     obj.solve1();
     obj.solve2();
+    obj.calcpossibnum();
     for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.fillsq(i,j);}}
-    for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.nakedsingle(i,j);}}
+    //for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.nakedsingle(i,j);}}
     for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.pointingpairs(i,j);}}
-    obj.calcposibnum();
+    for(int i=0;i<4;i=i+3){for(int j=0;j<7;j=j+3){obj.lockedcandidates(i,j);}}
     obj.display();
+    getch();
     obj.checkcomp();
 }
 
@@ -190,66 +193,6 @@ int game::solve1()
                     solvegrid[sudo[i][j]-1][i][k] = 0;
                 }
                 obj.clearsq(para1,para2,sudo[i][j]-1);
-            }
-        }
-    }
-}
-
-int game::pointingpairs(int a,int b) /**rework**/
-{
-    int occ=0,occ2=0;
-    for(int k=0; k<9;k++)
-    {
-        occ=0;
-        for(int i=a;i<a+3;i++)
-        {
-            for(int j=b;j<b+3;j++)
-            {
-                if(solvegrid[k][i][j]==k+1){occ++;}
-            }
-        }
-        if(occ<=3&&occ>1)
-        {
-            for(int i=a;i<a+3;i++)
-            {
-                occ2=0;
-                for(int j=b;j<b+3;j++)
-                {
-                    if(solvegrid[k][i][j]==k+1){occ2++;}
-                }
-                if(occ2==occ)
-                {
-                    for(int l=0;l<9;l++)
-                    {
-                        if(l<b||l>b+2)
-                        {
-                            solvegrid[k][i][l] = 0;
-
-                        }
-                    }
-                    break;
-                }
-            }
-
-            for(int i=b;i<b+3;i++)
-            {
-                occ2=0;
-                for(int j=a;j<a+3;j++)
-                {
-                    if(solvegrid[k][j][i]==k+1){occ2++;}
-                }
-                if(occ2==occ)
-                {
-                    for(int l=0;l<9;l++)
-                    {
-                        if(l<a||l>a+2)
-                        {
-                            solvegrid[k][l][i] = 0;
-
-                        }
-                    }
-                    break;
-                }
             }
         }
     }
@@ -301,6 +244,51 @@ int game::solve2()
         }
     }
 }
+
+
+int game::pointingpairs(int a,int b)
+{
+    int occ,occ2;
+    for(int k=0;k<9;k++)
+    {
+        occ=0;
+        for(int i=a;i<a+3;i++)
+        {
+            for(int j=b;j<b+3;j++)
+            {
+                if(solvegrid[k][i][j]!=0){occ++;}
+            }
+        }
+        if(occ>1&&occ<4)
+        {
+            for(int i=a;i<a+3;i++)
+            {
+                occ2=0;
+                for(int j=b;j<b+3;j++)
+                {
+                    if(solvegrid[k][i][j]!=0){occ2++;}
+                }
+                if(occ2==occ)
+                {
+                    for(int l=0;l<9;l++){if(l<b||l>b+2){solvegrid[k][i][l]=0;}}
+                }
+            }
+            for(int i=b;i<b+3;i++)
+            {
+                occ2=0;
+                for(int j=a;j<a+3;j++)
+                {
+                    if(solvegrid[k][j][i]!=0){occ2++;}
+                }
+                if(occ2==occ)
+                {
+                    for(int l=0;l<9;l++){if(l<a||l>a+2){solvegrid[k][l][i]=0;}}
+                }
+            }
+        }
+    }
+}
+
 int game::fillsq(int a, int b)
 {
     int occ;
@@ -329,25 +317,15 @@ int game::fillsq(int a, int b)
 
 int game::nakedsingle(int a, int b)
 {
-    int occ=0;
-    occ=0;
+    int occ;
     for(int i=a;i<a+3;i++)
     {
         for(int j=b;j<b+3;j++)
         {
-            if(posibnum[i][j][0]==1){occ++;}
-        }
-    }
-    if(occ==1)
-    {
-        for(int i=a;i<a+3;i++)
-        {
-            for(int j=b;j<b+3;j++)
+            if(possibnum[i][j][0]==1)  /**read up on this**/
             {
-                if(posibnum[i][j][0]==1)
-                {
-                    sudo[i][j] = posibnum[i][j][1]+1;
-                }
+                sudo[i][j] = possibnum[i][j][1]+1;
+                obj.clearsq(a,b,possibnum[i][j][1]);
             }
         }
     }
@@ -382,20 +360,22 @@ int game::display()
     }
     printf(" +-----------------------------+");
     printf("\n\n\n");
-    /*printf(" +-----------------------------+\n");
+   /* printf(" +-----------------------------+\n");
     for(int i=0;i<9;i++)
     {
         printf(" | ");
         for(int j=0;j<9;j++)
         {
-            if(j%3==0&&j!=0){printf("| %i  ",solvegrid[4][i][j]);}
-            else{if((j+1)%3!=0){printf("%i  ",solvegrid[4][i][j]);}else{printf("%i ",solvegrid[4][i][j]);}}
+            if(j%3==0&&j!=0){printf("| %i  ",possibnum[i][j][0]);}
+            else{if((j+1)%3!=0){printf("%i  ",possibnum[i][j][0]);}else{printf("%i ",possibnum[i][j][0]);}}
         }
         printf("|");
         if((i+1)%3==0&&i!=8){printf("\n\n |-----------------------------|\n\n");}
         else{printf("\n\n");}
     }
     printf(" +-----------------------------+");
+    */
+    int show=5;
     printf("\n\n\n");
     printf(" +-----------------------------+\n");
     for(int i=0;i<9;i++)
@@ -403,14 +383,14 @@ int game::display()
         printf(" | ");
         for(int j=0;j<9;j++)
         {
-            if(j%3==0&&j!=0){printf("| %i  ",solvegrid[2][i][j]);}
-            else{if((j+1)%3!=0){printf("%i  ",solvegrid[2][i][j]);}else{printf("%i ",solvegrid[2][i][j]);}}
+            if(j%3==0&&j!=0){printf("| %i  ",solvegrid[show-1][i][j]);}
+            else{if((j+1)%3!=0){printf("%i  ",solvegrid[show-1][i][j]);}else{printf("%i ",solvegrid[show-1][i][j]);}}
         }
         printf("|");
         if((i+1)%3==0&&i!=8){printf("\n\n |-----------------------------|\n\n");}
         else{printf("\n\n");}
     }
-    printf(" +-----------------------------+");*/
+    printf(" +-----------------------------+");
     return 0;
 }
 
@@ -439,7 +419,7 @@ int game::checkcomp()
     else{printf("\n\nSolved! (press any button to return to main menu)");getch();obj.menu();}
 }
 
-int game::calcposibnum()
+int game::calcpossibnum()
 {
     int occ;
     for(int i=0;i<9;i++)
@@ -451,12 +431,102 @@ int game::calcposibnum()
             {
                 if(solvegrid[k][i][j]!=0){occ++;}
             }
-            posibnum[i][j][0] = occ;
+            possibnum[i][j][0] = occ;
             if(occ==1)
             {
                 for(int k=0;k<9;k++)
                 {
-                    if(solvegrid[k][i][j]!=0){posibnum[i][j][1]=k;}
+                    if(solvegrid[k][i][j]!=0){possibnum[i][j][1]=k;}
+                }
+            }
+        }
+    }
+}
+
+int game::lockedcandidates(int a, int b)
+{
+    int occ,occ2,x1,x2;
+    for(int k=0;k<9;k++)
+    {
+        for(int i=a;i<a+3;i++)
+        {
+            occ = 0;
+            for(int j=b;j<b+3;j++)
+            {
+                if(solvegrid[k][i][j]!=0){++occ;if(occ==1){x1=j;}else{x2=j;}}
+            }
+            if(occ==2&&i<8)
+            {
+                for(int m=0;m<9;m++){if(solvegrid[k][i][m]!=0){occ++;}}
+                if(occ==4)
+                {
+                    for(int m=convert[1][i]+3;m<9;m++)
+                    {
+                        occ2=0;
+                        for(int n=0;n<9;n++){if(solvegrid[k][m][n]!=0){occ2++;}}
+                        if(occ2==2&&solvegrid[k][m][x1]!=0&&solvegrid[k][m][x2]!=0)
+                        {
+                            for(int n=0;n<9;n++)
+                            {
+                                if(n!=x1&&n!=x2){solvegrid[k][i][n]=0;solvegrid[k][m][n]=0;}
+                                if(n!=i&&n!=m){solvegrid[k][n][x1]=0;solvegrid[k][n][x2]=0;}
+                            }
+                            for(int c=a;c<a+3;c++)
+                            {
+                                for(int v=b;v<b+3;v++)
+                                {
+                                    if(c!=i&&v!=x1&&v!=x2){solvegrid[k][c][v]=0;}
+                                }
+                            }
+                            for(int c=convert[1][m];c<convert[1][m]+3;c++)
+                            {
+                                for(int v=convert[1][x1];v<convert[1][x1]+3;v++)
+                                {
+                                    if(c!=m&&v!=x1&&v!=x2){solvegrid[k][c][v]=0;}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            occ = 0;
+            for(int j=b;j<b+3;j++)
+            {
+                if(solvegrid[k][j][i]!=0){++occ;if(occ==1){x1=j;}else{x2=j;}}
+            }
+            if(occ==2&&i<8)
+            {
+                for(int m=0;m<9;m++){if(solvegrid[k][m][i]!=0){occ++;}}
+                if(occ==4)
+                {
+                    for(int m=convert[1][i]+3;m<9;m++)
+                    {
+                        occ2=0;
+                        for(int n=0;n<9;n++){if(solvegrid[k][n][m]!=0){occ2++;}}
+                        if(occ2==2&&solvegrid[k][x1][m]!=0&&solvegrid[k][x2][m]!=0)
+                        {
+                            for(int n=0;n<9;n++)
+                            {
+                                if(n!=x1&&n!=x2){solvegrid[k][n][i]=0;solvegrid[k][n][m]=0;}
+                                if(n!=i&&n!=m){solvegrid[k][x1][n]=0;solvegrid[k][x2][n]=0;}
+                            }
+                            for(int c=a;c<a+3;c++)
+                            {
+                                for(int v=b;v<b+3;v++)
+                                {
+                                    if(c!=i&&v!=x1&&v!=x2){solvegrid[k][v][c]=0;}
+                                }
+                            }
+                            for(int c=convert[1][m];c<convert[1][m]+3;c++)
+                            {
+                                for(int v=convert[1][x1];v<convert[1][x1]+3;v++)
+                                {
+                                    if(c!=m&&v!=x1&&v!=x2){solvegrid[k][v][c]=0;}
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
