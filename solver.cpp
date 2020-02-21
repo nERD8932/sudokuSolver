@@ -42,10 +42,13 @@ int main()
 
 int game::menu()
 {
+    int input;
+    input=0;
     system("cls");
     system("title -SUDOKU SOLVER-");
     printf("      -SUDOKU SOLVER-\n\n\n 1. Input Sudoku and solve\n 2. Read Sudoku text file and solve\n 3. Exit\n\n");
-    switch(getch())
+    input = getch();
+    switch(input)
     {
     case 49:
         obj.inputsudo();
@@ -54,9 +57,10 @@ int game::menu()
         obj.readfile();
         break;
     case 51:
+        exit(0);
         break;
     default:
-        obj.menu();
+        return 0;
         break;
     }
 }
@@ -123,19 +127,32 @@ int game::inputsudo()
         }
     }
     int input;
+    input=0;
     obj.display();
     for(int i=0;i<9;i++)
     {
         for(int j=0;j<9;j++)
         {
-            printf("\n\n Enter 0 for blank spaces, press backspace to re-enter previous cell");
+            printf("\n\n Enter 0 for blank spaces,\n press backspace to re-enter previous cell.\n Press Q to return to main menu");
             input = getch();
             if(input==8)
             {
                 if(j==0&&i!=0){i=i-1;j=7;sudo[i][j+1]=0;}
                 else if(j!=0){j=j-2;sudo[i][j+1]=0;}
             }
-            else if(input<48||input>57&&input!=8){printf("\n\n Incorrect input, returning to menu...(press any key to continue)");getch();obj.menu();}
+            else if(input<48||input>57&&input!=113&&input!=81)
+            {
+                if(j==0&&i!=0){i=i-1;j=8;}
+                else if(j!=0){j=j-1;}
+                else if(j==0&&i==0){i=0;j=-1;}
+            }
+            else if(input==113||input==81)
+            {
+                if(j==0&&i!=0){i=i-1;j=8;}
+                else if(j!=0){j=j-1;}
+                else if(j==0&&i==0){i=0;j=-1;}
+                obj.menu();
+            }
             else{sudo[i][j] = input - 48;}
             obj.display();
         }
@@ -353,6 +370,8 @@ int game::display()
         printf(" | ");
         for(int j=0;j<9;j++)
         {
+            /*if(i==d1&&j==d2){system("color 0b");}
+            else{system("color 0f");}*/
             if(j%3==0&&j!=0){printf("| %i  ",sudo[i][j]);}
             else{if((j+1)%3!=0){printf("%i  ",sudo[i][j]);}else{printf("%i ",sudo[i][j]);}}
         }
