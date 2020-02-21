@@ -19,9 +19,9 @@ struct game
 
     int solve1();
     int clearsq(int a, int b, int c);
-    int pointingpairs(int a, int b); /****/
-    int nakedpair();  /****/
-    int nakedpair_s(int a,int b); /****/
+    int pointingpairs(int a, int b);
+    //int nakedpair();  /**needs work**/
+   // int nakedpair_s(int a,int b); /**needs work**/
     int lockedcandidates(int a, int b);
 
     int solve2();
@@ -167,11 +167,12 @@ int game::loopsolve()
     obj.solve2();
     obj.calcpossibnum();
     for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.fillsq(i,j);}}
-    //for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.nakedsingle(i,j);}}
+    for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.nakedsingle(i,j);}}
     for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.pointingpairs(i,j);}}
+    //for(int i=0;i<7;i=i+3){for(int j=0;j<7;j=j+3){obj.nakedpair_s(i,j);}}
     for(int i=0;i<4;i=i+3){for(int j=0;j<7;j=j+3){obj.lockedcandidates(i,j);}}
+    //obj.nakedpair();
     obj.display();
-    getch();
     obj.checkcomp();
 }
 
@@ -317,18 +318,19 @@ int game::fillsq(int a, int b)
 
 int game::nakedsingle(int a, int b)
 {
-    int occ;
-    for(int i=a;i<a+3;i++)
+    int occ,x1,x2;
+    for(int k=0;k<9;k++)
     {
-        for(int j=b;j<b+3;j++)
+        occ=0;
+        for(int i=a;i<a+3;i++)
         {
-            if(possibnum[i][j][0]==1)  /**read up on this**/
+            for(int j=b;j<b+3;j++)
             {
-                sudo[i][j] = possibnum[i][j][1]+1;
-                obj.clearsq(a,b,possibnum[i][j][1]);
+                if(possibnum[i][j][0]==1&&possibnum[i][j][1]==k){occ++;x1=i;x2=j;}
             }
         }
     }
+    if(occ==1){solvegrid[possibnum[x1][x2][1]][x1][x2]=possibnum[x1][x2][1]+1;}
 }
 
 int game::clearsq(int a, int b, int c)
@@ -374,7 +376,7 @@ int game::display()
         else{printf("\n\n");}
     }
     printf(" +-----------------------------+");
-    */
+
     int show=5;
     printf("\n\n\n");
     printf(" +-----------------------------+\n");
@@ -391,19 +393,114 @@ int game::display()
         else{printf("\n\n");}
     }
     printf(" +-----------------------------+");
+    */
     return 0;
 }
 
+/*
 int game::nakedpair_s(int a,int b)
 {
+    int x1,x2,x3,x4;
+    for(int i=a;i<a+3;i++)
+    {
+        for(int j=b;j<b+3;j++)
+        {
+            x1=-1;x2=-1;x3=-1;x4=-1;
+            if(possibnum[i][j][0]==2&&i!=a+2&&j!=b+2)
+            {
+                for(int k=0;k<9;k++){if(solvegrid[k][i][j]!=0){if(x1==-1){x1=k;}else{x2=k;}}}
+            }
 
+            if(j==b+2)
+            {
+                for(int k=i+1;k<a+3;k++)
+                {
+                    for(int l=b;l<b+3;l++)
+                    {
+                        if(possibnum[k][l][0]==2)
+                        {
+                            for(int n=0;n<9;n++){if(solvegrid[n][k][l]!=0){if(x3==-1){x3=n;}else{x4=n;}}}
+                        }
+                        if(x1==x3&&x2==x4)
+                        {
+                            for(int n=a;n<a+3;n++)
+                            {
+                                for(int m=b;m<b+3;m++)
+                                {
+                                    if(n==i&&m==j){}
+                                    else if(n==k&&m==l){}
+                                    else{solvegrid[x1][n][m]=0;solvegrid[x2][n][m]=0;}
+                                }
+                            }
+
+                        }
+                        else{x3=-1;x4=-1;}
+                    }
+                }
+            }
+            else
+            {
+                for(int k=i+1;k<a+3;k++)
+                {
+                    for(int l=b;l<b+3;l++)
+                    {
+                        if(possibnum[k][l][0]==2)
+                        {
+                            for(int n=0;n<9;n++){if(solvegrid[n][k][l]!=0){if(x3==-1){x3=n;}else{x4=n;}}}
+                        }
+                        if(x1==x3&&x2==x4)
+                        {
+                            for(int n=a;n<a+3;n++)
+                            {
+                                for(int m=b;m<b+3;m++)
+                                {
+                                    if(n==i&&m==j){}
+                                    else if(n==k&&m==l){}
+                                    else{solvegrid[x1][n][m]=0;solvegrid[x2][n][m]=0;}
+                                }
+                            }
+
+                        }
+                        else{x3=-1;x4=-1;}
+                    }
+                }
+            }
+        }
+    }
 }
 
 int game::nakedpair()
 {
+    int x1,x2,x3,x4;
+    for(int i=0;i<9;i++)
+    {
+        for(int j=0;j<9;j++)
+        {
+            x1=-1;x2=-1;x3=-1;x4=-1;
+            if(possibnum[i][j][0]==2&&j<8)
+            {
+                for(int k=0;k<9;k++){if(solvegrid[k][i][j]!=0){if(x1==-1){x1=k;}else{x2=k;}}}
+            }
+            for(int k=j+1;k<9;k++)
+            {
+                if(possibnum[i][k][0]==2)
+                {
+                    for(int l=0;l<9;l++){if(solvegrid[l][i][k]!=0){if(x3==-1){x3=l;}else{x4=l;}}}
+                }
+                if(x1==x3&&x2==x4)
+                {
+                    for(int l=0;l<9;l++)
+                    {
+                        if(l!=j&&l!=k){solvegrid[x1][i][l]=0;solvegrid[x2][i][l]=0;}
+                    }
 
+                }
+                else{x3=-1;x4=-1;}
+            }
+        }
+    }
 }
-
+*/
 int game::checkcomp()
 {
     bool flag;
